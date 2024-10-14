@@ -1,4 +1,3 @@
-
 from itertools import product
 from random import shuffle
 
@@ -97,9 +96,9 @@ class BlackJackGame:
         self.double_check = False
 
     def start(self):
-        self.dealer_cards = [next(self.deck)]
+        self.dealer_cards = [next(self.deck), next(self.deck)]
         self.player_hands = [[next(self.deck), next(self.deck)]]
-        self.dealer_score = CardManager.value(self.dealer_cards[0])
+        self.dealer_score = sum([CardManager.value(card) for card in self.dealer_cards])
         self.player_scores = [CardManager.value(card) for card in self.player_hands[0]]
         self.player_scores = [sum(self.player_scores)]
 
@@ -138,6 +137,8 @@ class BlackJackGame:
                                   CardManager.value(self.player_hands[1][0])]
             self.hit(0)
             self.hit(1)
+        else:
+            print('Нельзя разделить')
 
     def get_result(self):
         results = []
@@ -213,24 +214,40 @@ class BlackJackGame:
             if all(score < 21 for score in self.player_scores):
                 self.stand()
             elif all(score == 21 for score in self.player_scores):
-                print(f'- Победил игрок -')
+                print(f'- Блэкджэк! -')
                 break
             res = self.get_result()
             print(self)
 
             if len(res) == 2:
-                if res[0] == 'Игрок' and res[1] == 'Игрок':
-                    print(f'- Победил игрок в обеих -')
-                    break
-                elif res[0] == 'Игрок' and res[1] == 'Дилер':
-                    print('- Победил дилер для второй-')
-                    continue
-                elif res[0] == 'Дилер' and res[1] == 'Игрок':
-                    print('- Победил дилер для первой-')
-                    continue
-                elif res[0] == 'Дилер' and res[1] == 'Дилер':
-                    print('- Победил дилер в обеих -')
-                    break
+                match res:
+                    case ['Игрок', 'Игрок']:
+                        print(f'- Победил игрок в обеих -')
+                        break
+                    case ['Игрок', 'Дилер']:
+                        print('- Победил дилер для второй-')
+                        continue
+                    case ['Дилер', 'Игрок']:
+                        print('- Победил дилер для первой-')
+                        continue
+                    case ['Дилер', 'Дилер']:
+                        print('- Победил дилер в обеих -')
+                        break
+                    case ['Ничья', 'Дилер']:
+                        print('- Победил дилер для второй, ничья для первой -')
+                        break
+                    case ['Ничья', 'Игрок']:
+                        print('- Победил игрок для второй, ничья для первой -')
+                        break
+                    case ['Игрок', 'Ничья']:
+                        print('- Победил игрок для первой, ничья для второй -')
+                        break
+                    case ['Дилер', 'Ничья']:
+                        print('- Победил дилер для первой, ничья для второй -')
+                        break
+                    case ['Ничья', 'Ничья']:
+                        print('- Ничья в обеих -')
+                        break
 
             else:
                 if 'Игрок' in res:
