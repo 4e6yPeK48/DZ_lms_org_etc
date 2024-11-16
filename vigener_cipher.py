@@ -1,14 +1,16 @@
 def vigener_cipher(word, cipher):
     word = word.lower()
-    cipher = cipher.lower() * (len(word) // len(cipher)) + cipher[:len(word) % len(cipher)]
+    cipher = cipher.lower()
     ans = ''
-    for letter in range(len(word)):
-        if word[letter].isalpha():
-            shift = ord(cipher[letter]) - ord('a')
-            ans += chr((ord(word[letter]) - ord('a') + shift) % 26 + ord('a'))
+
+    for i, letter in enumerate(word):
+        if letter.isalpha():
+            shift = ord(cipher[i % len(cipher)]) - ord('a')
+            ans += chr((ord(letter) - ord('a') + shift) % 26 + ord('a'))
         else:
-            ans += word[letter]
+            ans += letter
+
     return ans
 
 
-print(vigener_cipher('hello hellohello', 'key'))
+print(vigener_cipher('hello hello hello', 'key'))

@@ -1,8 +1,12 @@
+import os
 import random
+import time
+
 from colorama import init, Fore
 from colorama import Back
 
 init(autoreset=True)
+strokes = 'abcdefghijklmnopqrstuvwxyz'
 
 
 class Ship:
@@ -92,34 +96,36 @@ class Board:
         return False
 
     def receive_shot(self, row, col):
-        if not (0 <= row < self.size and 0 <= col < self.size):
+        try:
+            row = strokes.index(row)
+        except ValueError:
+            print(Fore.RED + '-- Неверная строка --')
+            return False
+        if not (0 <= col < self.size or row not in strokes):
             print(Fore.RED + '-- Выстрел за пределы доски-- ')
             return False
         if self.grid[row][col] == 'S':
             self.grid[row][col] = 'X'
             for ship in self.ships:
                 if (row, col) in ship.positions:
-                    print(Fore.GREEN + '- Попал! -')
                     if ship.hit():
                         print(Fore.BLUE + '-- Корабль потоплен! --')
                     return True
         else:
             self.grid[row][col] = 'O'
-        print(Fore.RED + '- Промах... -')
         return False
 
     def display(self):
-        strokes = 'abcdefghijklmnopqrstuvwxyz'
-        return f'\n  {"━ " * (self.size - 1)}━\n'.join(
-            [f'{strokes[i]}:' + '┃'.join(row) for i, row in enumerate(self.grid)])
+        global strokes
+        return f'\n  {"━" * ((self.size) * 4)}\n'.join(
+            [f'{strokes[i]}: ' + ' ┃ '.join(row) for i, row in enumerate(self.grid)])
 
     def display_hidden(self):
-        return f'\n  {"━ " * (self.size - 1)}━\n'.join(
-            ['┃'.join([' ' if cell == 'S' else cell for cell in row]) for row in self.grid])
+        return f'\n  {" ━ " * (self.size)}\n'.join(
+            ['┃ '.join([' ' if cell == 'S' else cell for cell in row]) for row in self.grid])
 
     def all_ships_sunk(self):
         if all(ship.is_sunk() for ship in self.ships):
-            print(Back.BLACK + Fore.GREEN + '<-- Победа! -->')
             return True
         return False
 
@@ -139,22 +145,34 @@ class Game:
     def __init__(self, size=10):
         self.board = Board(size)
 
+    def clear_screen(self):
+        os.system('cls' if os.name == 'nt' else 'clear')
+
     def play(self):
         self.board.place_all_ships()
 
         while not self.board.all_ships_sunk():
-            # for ship in self.board.ships:
-            #     print(ship)
-            # print(self.board.display_hidden())
-            print('  ' + ' '.join([f'{str(i)}' for i in range(1, self.board.size + 1)]))
+            self.clear_screen()
+            print('   ' + '  '.join([f'{str(i)} ' for i in range(1, self.board.size + 1)]))
             print(self.board.display())
+            print(Fore.LIGHTCYAN_EX + 'Введи строку ' + f'(a - {strokes[self.board.size - 1]}): ', end='')
+            row = input()
+            print(Fore.LIGHTYELLOW_EX + 'Введи столбец ' + f'(1 - {self.board.size}): ', end='')
             try:
-                row = int(input(Fore.YELLOW + 'Введи строку ' + f'(1 - {self.board.size}): ')) - 1
-                col = int(input(Fore.LIGHTYELLOW_EX + 'Введи столбец ' + f'(1 - {self.board.size}): ')) - 1
+                col = int(input()) - 1
             except ValueError:
                 print('Введи число')
+                time.sleep(2)
                 continue
             self.board.receive_shot(row, col)
+
+            if self.board.all_ships_sunk():
+                print(Back.BLACK + Fore.GREEN + '<-- Победа! -->')
+                break
+            else:
+                print(Fore.RED + '- Промах... -' if self.board.grid[strokes.index(row)][
+                                                        col] == 'O' else Fore.GREEN + '- Попал! -')
+                time.sleep(2)
 
 
 if __name__ == '__main__':
